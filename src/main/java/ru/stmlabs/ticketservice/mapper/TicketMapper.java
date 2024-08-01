@@ -1,14 +1,10 @@
 package ru.stmlabs.ticketservice.mapper;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.stereotype.Component;
 import ru.stmlabs.ticketservice.dto.TicketDto;
 import ru.stmlabs.ticketservice.dto.TicketsDto;
 import ru.stmlabs.ticketservice.entity.Ticket;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component

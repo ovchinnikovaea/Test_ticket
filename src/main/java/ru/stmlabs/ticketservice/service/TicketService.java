@@ -1,6 +1,5 @@
 package ru.stmlabs.ticketservice.service;
 
-import ru.stmlabs.ticketservice.dto.TicketsDto;
 import ru.stmlabs.ticketservice.entity.Ticket;
 
 import java.time.LocalDateTime;

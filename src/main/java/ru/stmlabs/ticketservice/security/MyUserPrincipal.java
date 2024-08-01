@@ -6,8 +6,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import ru.stmlabs.ticketservice.entity.User;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MyUserPrincipal implements UserDetails {
     private User user;
@@ -19,9 +19,12 @@ public class MyUserPrincipal implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
-                .collect(Collectors.toList());    }
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        if (user.getRole() != null) {
+            authorities.add(new SimpleGrantedAuthority(user.getRole().getName().name()));
+        }
+        return authorities;
+    }
 
     @Override
     public String getPassword() {

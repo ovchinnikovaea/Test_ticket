@@ -1,19 +1,15 @@
 package ru.stmlabs.ticketservice.dto;
 
-/* Здесь должна быть хорошая авторизация. И будет. Наверно.*/
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class LoginDto {
-    // Dto для авторизации пользователя
 
-    @JsonProperty("login") // имя пользователя
+    @JsonProperty("login")
     private String username;
 
-    @JsonProperty("password") // пароль
-
+    @JsonProperty("password")
     private String password;
 
 

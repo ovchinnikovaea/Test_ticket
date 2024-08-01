@@ -1,13 +1,11 @@
 package ru.stmlabs.ticketservice.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import ru.stmlabs.ticketservice.entity.Route;
 import ru.stmlabs.ticketservice.entity.Ticket;
-import ru.stmlabs.ticketservice.exception.LoginAlreadyExistsException;
 import ru.stmlabs.ticketservice.mapper.TicketMapper;
 import ru.stmlabs.ticketservice.service.TicketService;
 
@@ -57,7 +55,6 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public List<Ticket> getAllTicketsByParam(LocalDateTime dateTime, String departure, String arrival, String carrier, int pageNumber, int pageSize) {
-        // SQL-запрос с поддержкой фильтрации по критериям
         StringBuilder sqlBuilder = new StringBuilder("SELECT t.*, r.departure, r.arrival, r.carrier FROM ticket t JOIN route r ON t.route_id = r.id WHERE t.status = 'available'");
 
         List<Object> params = new ArrayList<>();
@@ -78,10 +75,8 @@ public class TicketServiceImpl implements TicketService {
             sqlBuilder.append(" AND r.carrier = ?");
             params.add(carrier);
         }
-// Пагинация
-        int page = pageNumber; // номер страницы (0-based)
-        int size = pageSize; // размер страницы
-
+        int page = pageNumber;
+        int size = pageSize;
 
         sqlBuilder.append(" LIMIT ? OFFSET ?");
         params.add(size);

@@ -6,9 +6,9 @@ import lombok.Data;
 import java.util.List;
 @Data
 public class TicketsDto {
-    @JsonProperty("count") // общее количество билетов
+    @JsonProperty("count")
     private Integer count;
 
-    @JsonProperty("results") // коллекция билетов
+    @JsonProperty("results")
     private List<TicketDto> results;
 }

@@ -6,13 +6,13 @@ import java.time.LocalDateTime;
 
 public class TicketDto {
 
-    @JsonProperty("route") // маршрут
+    @JsonProperty("route")
     private String route;
 
-    @JsonProperty("dateTime") // дата/время
+    @JsonProperty("dateTime")
     private LocalDateTime dateTime;
 
-    @JsonProperty("price") // цена билета
+    @JsonProperty("price")
     private Integer price;
 
 }

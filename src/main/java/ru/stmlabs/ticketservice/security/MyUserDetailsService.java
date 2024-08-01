@@ -14,7 +14,6 @@ import ru.stmlabs.ticketservice.exception.LoginNotFoundException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +23,7 @@ public class MyUserDetailsService implements UserDetailsService {
     private JdbcTemplate jdbcTemplate;
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        String query = "SELECT * FROM users WHERE username = ?";
+        String query = "SELECT * FROM app_user WHERE login = ?";
         User user = jdbcTemplate.queryForObject(query, new Object[]{login}, this::mapRowToUser);
         if (user == null) {
 

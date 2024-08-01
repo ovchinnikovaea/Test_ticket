@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.stmlabs.ticketservice.dto.TicketsDto;
 import ru.stmlabs.ticketservice.entity.Ticket;
 import ru.stmlabs.ticketservice.service.TicketService;
 
@@ -43,11 +42,7 @@ public class TicketController {
             @RequestParam(value = "carrier", required = false) String carrier,
             @RequestParam(defaultValue = "0") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize) {
-
-        // Вызов метода сервиса с параметрами
         List<Ticket> tickets = ticketService.getAllTicketsByParam(dateTime, departure, arrival, carrier, pageNumber, pageSize);
-
-        // Возвращаем ответ
         return ResponseEntity.ok(tickets);
     }
 

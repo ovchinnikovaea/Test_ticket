@@ -1,13 +1,10 @@
 package ru.stmlabs.ticketservice.entity;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
-
-import java.util.Set;
 
 @Getter
 @Setter
@@ -19,7 +16,9 @@ public class User {
     private String login;
     private String password;
     private String fullName;
-    private Set<Role> roles;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id")
+    private Role role;
 
     public User(Long id, String login, String password, String fullName) {
         this.id = id;
