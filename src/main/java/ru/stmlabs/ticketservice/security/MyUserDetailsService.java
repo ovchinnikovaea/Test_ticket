@@ -33,11 +33,11 @@ public class MyUserDetailsService implements UserDetailsService {
     }
 
     private User mapRowToUser(ResultSet rs, int rowNum) throws SQLException {
-        return new User(
-                rs.getLong("id"),
-                rs.getString("login"),
-                rs.getString("password"),
-                rs.getString("fullName")
-        );
+        User user = new User();
+        user.setId(rs.getLong("id"));
+        user.setLogin(rs.getString("login"));
+        user.setPassword(rs.getString("password"));
+        user.setFullName(rs.getString("fullName"));
+        return user;
     }
 }

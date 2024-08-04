@@ -48,3 +48,5 @@ ALTER TABLE rout RENAME TO route;
 
 -- changeset ovchinnikova:9
 ALTER TABLE ticket RENAME COLUMN rout_id TO route_id;
+-- changeset ovchinnikova:10
+ALTER TABLE ticket ADD COLUMN user_id INTEGER;

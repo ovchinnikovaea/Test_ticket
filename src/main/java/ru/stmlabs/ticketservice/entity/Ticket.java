@@ -22,5 +22,8 @@ public class Ticket {
     private String seat;
     private int price;
     private String status;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }
 

@@ -5,6 +5,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import ru.stmlabs.ticketservice.enums.ERole;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,19 +19,17 @@ public class User {
     private String login;
     private String password;
     private String fullName;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id")
-    private Role role;
-
-    public User(Long id, String login, String password, String fullName) {
-        this.id = id;
-        this.login = login;
-        this.password = password;
-        this.fullName = fullName;
-    }
+    @Enumerated(EnumType.STRING)
+    @JoinColumn(name = "role")
+    private Role Role;
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
+    private List<Ticket> tickets;
 
     public User() {
 
+    }
+
+    public User(long id, String login, String password, String fullName) {
     }
 }
 

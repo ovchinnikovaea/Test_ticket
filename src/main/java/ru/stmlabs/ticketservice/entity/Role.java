@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import ru.stmlabs.ticketservice.enums.ERole;
 
+
 @Getter
 @Setter
 public class Role {

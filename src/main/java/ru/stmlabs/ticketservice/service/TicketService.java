@@ -1,5 +1,8 @@
 package ru.stmlabs.ticketservice.service;
 
+//import ru.stmlabs.ticketservice.dto.CreateOrUpdateTicketDto;
+import ru.stmlabs.ticketservice.dto.CreateOrUpdateTicketDto;
+import ru.stmlabs.ticketservice.dto.TicketDto;
 import ru.stmlabs.ticketservice.entity.Ticket;
 
 import java.time.LocalDateTime;
@@ -16,5 +19,10 @@ public interface TicketService {
             int pageNumber,
             int pageSize);
 
-    Ticket buyTicket(int id);
+    TicketDto buyTicket(int id, Long userId);
+
+    List<Ticket> getTicketsMe(Long userId);
+
+//    TicketDto addTicket(CreateOrUpdateTicketDto createOrUpdateTicketDto, Long userId);
+
 }
