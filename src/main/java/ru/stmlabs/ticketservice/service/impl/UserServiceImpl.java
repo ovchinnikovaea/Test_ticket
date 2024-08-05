@@ -36,6 +36,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setLogin(body.getUsername());
         user.setFullName(body.getFullName());
+        user.setRole(body.getRole());
         user.setPassword(passwordEncoder.encode(body.getPassword()));
 
         String sqlCheckUser = "SELECT login FROM app_user WHERE login = ?";
@@ -88,11 +89,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public Long getUserId(String username) throws UserNotFoundException {
         try {
-            return jdbcTemplate.queryForObject(
-                    SQL_FIND_USER_BY_USERNAME,
-                    new Object[]{username},
-                    (rs, rowNum) -> rs.getLong("id")
-            );
+            String sqlCheckUser = "SELECT id FROM app_user WHERE login = ?";
+            Long userId = jdbcTemplate.queryForObject(sqlCheckUser, new Object[]{username}, Long.class);
+            return userId;
         } catch (EmptyResultDataAccessException e) {
             throw new UserNotFoundException("User not found with username: " + username);
         }

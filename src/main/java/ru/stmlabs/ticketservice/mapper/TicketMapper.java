@@ -6,12 +6,15 @@ import org.springframework.stereotype.Component;
 import ru.stmlabs.ticketservice.dto.TicketDto;
 import ru.stmlabs.ticketservice.dto.TicketsDto;
 import ru.stmlabs.ticketservice.entity.Ticket;
+
 import java.util.List;
 
 @Component
 @Mapper(componentModel = "spring")
 public abstract class TicketMapper {
+
     public abstract TicketDto ticketToTicketDto(Ticket ticket);
+
     public abstract Ticket ticketDtoToTicket(TicketDto ticketDto);
 
     public abstract List<TicketDto> ticketsToTicketDtos(List<Ticket> tickets);
@@ -24,8 +27,4 @@ public abstract class TicketMapper {
         ticketsDto.setCount(tickets.size());
         return ticketsDto;
     }
-
-//    @Mapping(target = "status", ignore = true)
-//    @Mapping(target = "user", ignore = true)
-//    public abstract Ticket createOrUpdateTicketDTOToTicket(CreateOrUpdateTicketDto createOrUpdateTicketDto);
 }

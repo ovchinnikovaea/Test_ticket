@@ -35,16 +35,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             final String token = header.substring(7);
 
-            if (jwtUtils.validateJwtToken(token)) {
-                String username = jwtUtils.getUserNameFromJwtToken(token);
-                UserDetails userDetails = myUserDetailsService.loadUserByUsername(username);
+            try {
+                if (jwtUtils.validateJwtToken(token)) {
+                    String username = jwtUtils.getUserNameFromJwtToken(token);
+                    UserDetails userDetails = myUserDetailsService.loadUserByUsername(username);
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                logger.info("User {} authenticated successfully", username);
-            } else {
-                logger.warn("Invalid JWT token");
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    logger.info("User {} authenticated successfully", username);
+                } else {
+                    logger.warn("Invalid JWT token");
+                }
+            } catch (Exception e) {
+                logger.error("JWT authentication failed: {}", e.getMessage());
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed");
+                return;
             }
         }
         filterChain.doFilter(request, response);

@@ -50,3 +50,5 @@ ALTER TABLE rout RENAME TO route;
 ALTER TABLE ticket RENAME COLUMN rout_id TO route_id;
 -- changeset ovchinnikova:10
 ALTER TABLE ticket ADD COLUMN user_id INTEGER;
+-- changeset ovchinnikova:11
+ALTER TABLE app_user ADD COLUMN role VARCHAR(20) DEFAULT 'USER';

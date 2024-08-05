@@ -3,20 +3,14 @@ package ru.stmlabs.ticketservice.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-//import ru.stmlabs.ticketservice.dto.CreateOrUpdateTicketDto;
-import ru.stmlabs.ticketservice.dto.CreateOrUpdateTicketDto;
-import ru.stmlabs.ticketservice.dto.TicketDto;
-import ru.stmlabs.ticketservice.dto.TicketsDto;
 import ru.stmlabs.ticketservice.entity.Ticket;
-import ru.stmlabs.ticketservice.entity.User;
-import ru.stmlabs.ticketservice.exception.UserNotFoundException;
+import ru.stmlabs.ticketservice.security.JwtUtils;
 import ru.stmlabs.ticketservice.service.TicketService;
 import ru.stmlabs.ticketservice.service.UserService;
 
@@ -26,30 +20,22 @@ import java.util.List;
 @RestController
 @RequestMapping("/tickets")
 public class TicketController {
+    private static final Logger logger = LoggerFactory.getLogger(TicketController.class);
     private final TicketService ticketService;
     private final UserService userService;
-    private final UserController userController;
+    private final JwtUtils jwtUtils;
 
-
-    public TicketController(TicketService ticketService, UserService userService, UserController userController) {
+    public TicketController(TicketService ticketService, UserService userService, JwtUtils jwtUtils) {
         this.ticketService = ticketService;
         this.userService = userService;
-        this.userController = userController;
-
+        this.jwtUtils = jwtUtils;
     }
 
-    @Operation(summary = "Получение списка всех билетов")
+    @Operation(summary = "Получение билетов по параметрам")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK")
-    })
-    @GetMapping
-    public ResponseEntity<List<Ticket>> getAllTickets(@RequestHeader("Authorization") String authorizationHeader) {
-        return ResponseEntity.ok(ticketService.getAllTickets());
-    }
-
-    @Operation(summary = "Получение списка всех билетов по параметрам")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK")
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "404", description = "Not found")
     })
     @GetMapping("/by-param")
     public ResponseEntity<List<Ticket>> getAllTicketsByParam(
@@ -68,20 +54,17 @@ public class TicketController {
             @ApiResponse(responseCode = "200", description = "OK")
     })
     @GetMapping("/{id}/buy")
-    public ResponseEntity<TicketDto> buyTicket(@PathVariable int id, @RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<Ticket> buyTicket(@PathVariable int id, @RequestHeader("Authorization") String authorizationHeader) {
         try {
-            Long userId = userController.getUser(authorizationHeader);
-            TicketDto ticket = ticketService.buyTicket(id, userId);
+            String userName = jwtUtils.getUserNameFromJwtToken(authorizationHeader);
+            Long userId = userService.getUserId(userName);
+            Ticket ticket = ticketService.buyTicket(id, userId);
             if (ticket == null) {
-                return ResponseEntity.notFound().build(); // Билет не найден
+                return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.ok(ticket); // Возвращаем найденный билет
-        } catch (UserNotFoundException e) {
-            // Обрабатываем исключение, если пользователь не найден
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Возвращаем статус 401
+            return ResponseEntity.ok(ticket);
         } catch (Exception e) {
-            // Обрабатываем любые другие исключения
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // Возвращаем статус 500
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -94,38 +77,14 @@ public class TicketController {
     @GetMapping(value = "/me")
     public ResponseEntity<List<Ticket>> getTicketsMe(@RequestHeader("Authorization") String authorizationHeader) {
         try {
-            Long userId = userController.getUser(authorizationHeader);
+            String userName = jwtUtils.getUserNameFromJwtToken(authorizationHeader);
+            Long userId = userService.getUserId(userName);
             List<Ticket> tickets = ticketService.getTicketsMe(userId);
-            return ResponseEntity.ok(tickets); // Возвращаем найденный билет
+            return ResponseEntity.ok(tickets);
 
-        } catch (UserNotFoundException e) {
-            // Обрабатываем исключение, если пользователь не найден
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Возвращаем статус 401
         } catch (Exception e) {
-            // Обрабатываем любые другие исключения
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // Возвращаем статус 500
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
     }
-//    @Operation(summary = "Добавление билета")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "201", description = "Created"),
-//            @ApiResponse(responseCode = "401", description = "Unauthorized")
-//    })
-//    @PostMapping("/add")
-//    public ResponseEntity<TicketDto> addAd(@RequestBody CreateOrUpdateTicketDto createOrUpdateTicketDto,
-//                                      @RequestHeader("Authorization") String authorizationHeader) {
-//        try {
-//            Long userId = userController.getUser(authorizationHeader);
-//            TicketDto ticket = ticketService.addTicket(createOrUpdateTicketDto, userId);
-//            return ResponseEntity.ok(ticket); // Возвращаем найденный билет
-//
-//        } catch (UserNotFoundException e) {
-//            // Обрабатываем исключение, если пользователь не найден
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Возвращаем статус 401
-//        } catch (Exception e) {
-//            // Обрабатываем любые другие исключения
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // Возвращаем статус 500
-//        }
-//    }
 }

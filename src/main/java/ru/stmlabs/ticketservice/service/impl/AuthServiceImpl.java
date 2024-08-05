@@ -1,7 +1,8 @@
 package ru.stmlabs.ticketservice.service.impl;
-
-import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,15 +23,22 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional
     public String login(String username, String password) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        if (userDetails == null) {
+        if (username == null || password == null) {
+            throw new IllegalArgumentException("Username or password is missing for login attempt");
+        }
+        UserDetails userDetails;
+        try {
+            userDetails = userDetailsService.loadUserByUsername(username);
+        } catch (UsernameNotFoundException e) {
             throw new UsernameNotFoundException("User not found with username: " + username);
         }
+
         if (!encoder.matches(password, userDetails.getPassword())) {
             throw new BadCredentialsException("Invalid credentials");
         }
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
         return jwtUtils.generateJwtToken(userDetails);
     }
 }

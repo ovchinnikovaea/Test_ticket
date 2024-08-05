@@ -7,13 +7,16 @@ import java.time.LocalDateTime;
 
 public class TicketDto {
 
-    @JsonProperty("route")
-    private Integer route;
-
+    @JsonProperty("departure")
+    private String departure;
+    @JsonProperty("arrival")
+    private String arrival;
     @JsonProperty("dateTime")
     private LocalDateTime dateTime;
 
     @JsonProperty("price")
     private Integer price;
 
+    public TicketDto(String departure, String arrival, LocalDateTime dateTime, int price) {
+    }
 }

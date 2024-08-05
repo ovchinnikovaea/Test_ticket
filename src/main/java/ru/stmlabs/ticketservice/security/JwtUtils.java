@@ -8,13 +8,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.*;
-import ru.stmlabs.ticketservice.controller.UserController;
 
 import java.util.Date;
 
 @Component
 public class JwtUtils {
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -26,13 +25,13 @@ public class JwtUtils {
     private int jwtRefreshExpirationMs;
 
     public String generateJwtToken(UserDetails userDetails) {
-         return Jwts.builder()
-                    .setSubject(userDetails.getUsername())
-                    .setIssuedAt(new Date())
-                    .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
-                    .signWith(SignatureAlgorithm.HS512, jwtSecret)
-                    .compact();
-        }
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .compact();
+    }
 
 
     public String generateRefreshToken(Authentication authentication) {
@@ -46,12 +45,15 @@ public class JwtUtils {
                 .compact();
     }
 
-    public String getUserNameFromJwtToken(String token) {
-        return Jwts.parser()
+    public String getUserNameFromJwtToken(String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+
+        String userName = Jwts.parser()
                 .setSigningKey(jwtSecret)
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+        return userName;
     }
 
     public boolean validateJwtToken(String authToken) {
@@ -71,4 +73,4 @@ public class JwtUtils {
         }
         return false;
     }
-    }
+}
