@@ -1,130 +1,130 @@
 package ru.stmlabs.ticketservice.service.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
-//import ru.stmlabs.ticketservice.dto.CreateOrUpdateTicketDto;
 import ru.stmlabs.ticketservice.entity.Ticket;
+import ru.stmlabs.ticketservice.repository.TicketRepository;
 import ru.stmlabs.ticketservice.service.TicketService;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import static ru.stmlabs.ticketservice.repository.constants.SQLConstants.*;
+
+@Slf4j
 @Service
 public class TicketServiceImpl implements TicketService {
-    private static final Logger logger = LoggerFactory.getLogger(TicketService.class);
-    private final JdbcTemplate jdbcTemplate;
+    private final TicketRepository ticketRepository;
 
     @Autowired
-    public TicketServiceImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;}
+    public TicketServiceImpl(TicketRepository ticketRepository) {
+        this.ticketRepository = ticketRepository;
+    }
 
     @Override
-    public List<Ticket> getAllTicketsByParam(LocalDateTime dateTime, String departure, String arrival, String carrier, int pageNumber, int pageSize) {
-        StringBuilder sqlBuilder = new StringBuilder(
-                "SELECT t.id, t.route_id, t.dataTime, t.seat, t.price, t.status, t.user_id, " +
-                        "r.departure, r.arrival, r.carrier " +
-                        "FROM ticket t " +
-                        "JOIN route r ON t.route_id = r.id " +
-                        "WHERE t.status = 'available'"
-        );
+    public List<Ticket> getAllTicketsByParam(LocalDateTime dateTime, String departure, String arrival, String carrier, int pageNumber, int pageSize) throws SQLException {
+        List<Object> params = createParamsForSQL(dateTime, departure, arrival, carrier);
+        log.info("Received params: " + params);
+        String sqlTicket = createSQLByParam(dateTime, departure, arrival, carrier);
+        log.info("SQL request = " + sqlTicket);
+        log.info("Successfully received tickets by specified parameters");
+
+        List<Ticket> allTickets = ticketRepository.getTicketsByParam(sqlTicket, params);
+
+        return getPagedTickets(allTickets, pageNumber, pageSize);
+    }
+
+    @Override
+    public Ticket buyTicket(int ticketId, Long userId) {
+        try {
+            String status = ticketRepository.getTicketStatusById(ticketId);
+            log.info("Retrieved status for ticket with ID: " + ticketId + " is " + status);
+
+            if (status == null) {
+                log.error("Status for ticket with ID: " + ticketId + " is null");
+                throw new IllegalArgumentException("Ticket status is not available");
+            }
+
+            if ("sold".equalsIgnoreCase(status)) {
+                log.error("Ticket with ID: " + ticketId + " is already sold");
+                throw new IllegalStateException("Ticket is already sold");
+            }
+
+            log.info("Successfully bought ticket with ID: " + ticketId + " for user ID: " + userId);
+            return ticketRepository.updateStatusTicket(userId, ticketId);
+
+        } catch (Exception e) {
+            log.error("Unexpected error while buying ticket with ID: " + ticketId, e);
+            throw new RuntimeException("Unexpected error while processing the ticket purchase", e);
+        }
+    }
+
+    @Override
+    public List<Ticket> getTicketsMe(Long userId) {
+        try {
+            List<Ticket> tickets = ticketRepository.getTicketsByUserId(userId);
+            log.info("Successfully received tickets for user with id  " + userId);
+            return tickets;
+        } catch (Exception e) {
+            throw new RuntimeException("Unexpected error while processing the ticket receipt", e);
+        }
+    }
+
+    private List<Object> createParamsForSQL(LocalDateTime dateTime,
+                                            String departure,
+                                            String arrival,
+                                            String carrier) {
         List<Object> params = new ArrayList<>();
 
         if (dateTime != null) {
-            sqlBuilder.append(" AND t.dataTime = ?");
             params.add(Timestamp.valueOf(dateTime));
         }
         if (departure != null) {
-            sqlBuilder.append(" AND r.departure = ?");
             params.add(departure);
         }
         if (arrival != null) {
-            sqlBuilder.append(" AND r.arrival = ?");
             params.add(arrival);
         }
         if (carrier != null) {
-            sqlBuilder.append(" AND r.carrier = ?");
             params.add(carrier);
         }
-        int page = pageNumber;
-        int size = pageSize;
 
-        sqlBuilder.append(" LIMIT ? OFFSET ?");
-        params.add(size);
-        params.add(page * size);
-        String sqlTickets = sqlBuilder.toString();
-        List<Ticket> tickets = jdbcTemplate.query(sqlTickets, params.toArray(), new RowMapper<Ticket>() {
-            @Override
-            public Ticket mapRow(ResultSet rs, int rowNum) throws SQLException {
-                return mapRowToTicket(rs);
-            }
-        });
-
-        return tickets;
+        return params;
     }
 
-    @Override
-    public Ticket buyTicket(int id, Long userId) {
-        String sqlCheckTicket = "SELECT status FROM ticket WHERE id = ?";
-        String status = jdbcTemplate.queryForObject(sqlCheckTicket, new Object[]{id}, String.class);
+    private String createSQLByParam(LocalDateTime dateTime,
+                                    String departure,
+                                    String arrival,
+                                    String carrier) {
+        String sqlTicket = SQL_GET_AVAILABLE_TICKET;
 
-        if (status == null) {
-            logger.error("Ticket with ID {} not found", id);
-            throw new IllegalArgumentException("Ticket not found");
+        if (dateTime != null) {
+            sqlTicket += " AND t.dataTime = ?";
+        }
+        if (departure != null) {
+            sqlTicket += " AND r.departure = ?";
+        }
+        if (arrival != null) {
+            sqlTicket += " AND r.arrival = ?";
+        }
+        if (carrier != null) {
+            sqlTicket += " AND r.carrier = ?";
         }
 
-        if ("sold".equalsIgnoreCase(status)) {
-            logger.error("Ticket with ID {} is already sold", id);
-            throw new IllegalStateException("Ticket is already sold");
+        return sqlTicket;
+    }
+
+    public List<Ticket> getPagedTickets(List<Ticket> allTickets, int pageNumber, int pageSize) {
+        int fromIndex = pageNumber* pageSize;
+        if (fromIndex > allTickets.size()) {
+            return Collections.emptyList();
         }
-        String sqlGetTicket =
-                "SELECT t.id, t.seat, t.price, t.status, t.dataTime, t.route_id, " +
-                        "r.departure, r.arrival, r.carrier " +
-                        "FROM ticket t " +
-                        "JOIN route r ON t.route_id = r.id " +
-                        "WHERE t.id = ?";
-        Ticket ticket = jdbcTemplate.queryForObject(sqlGetTicket, new Object[]{id}, new RowMapper<Ticket>() {
-            @Override
-            public Ticket mapRow(ResultSet rs, int rowNum) throws SQLException {
-                return mapRowToTicket(rs);
-            }
-
-        });
-        String sqlUpdateStatus = "UPDATE ticket SET status = 'sold', user_id = ? WHERE id = ?";
-        jdbcTemplate.update(sqlUpdateStatus, userId, id);
-        return ticket;
-
-    }
-    @Override
-    public List<Ticket> getTicketsMe(Long userId) {
-        String sqlCheckTicket = "SELECT t.*, r.departure, r.arrival, r.carrier, r.duration " +
-                "FROM ticket t " +
-                "JOIN route r ON t.route_id = r.id " +
-                "WHERE t.user_id = ? AND t.status = 'sold'";
-        ;
-        List<Ticket> tickets = jdbcTemplate.query(sqlCheckTicket, new Object[]{userId}, new RowMapper<Ticket>() {
-            @Override
-            public Ticket mapRow(ResultSet rs, int rowNum) throws SQLException {
-                return mapRowToTicket(rs);
-            }
-        });
-        return tickets;
-    }
-    private Ticket mapRowToTicket(ResultSet rs) throws SQLException {
-        Ticket ticket = new Ticket();
-        ticket.setId(rs.getInt("id"));
-        ticket.setRouteId(rs.getInt("route_id"));
-        ticket.setDateTime(rs.getTimestamp("dataTime").toLocalDateTime());
-        ticket.setSeat(rs.getString("seat"));
-        ticket.setPrice(rs.getInt("price"));
-        ticket.setStatus(rs.getString("status"));
-        return ticket;
+        int toIndex = Math.min(fromIndex + pageSize, allTickets.size());
+        return allTickets.subList(fromIndex, toIndex);
     }
 }

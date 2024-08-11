@@ -3,7 +3,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.Getter;
-import ru.stmlabs.ticketservice.entity.Role;
+import ru.stmlabs.ticketservice.enums.ERole;
 
 @Data
 @Getter
@@ -18,5 +18,5 @@ public class RegisterDto {
     @JsonProperty("firstName")
     private String fullName;
     @JsonProperty("role")
-    private Role role;
+    private ERole role;
 }

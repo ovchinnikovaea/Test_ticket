@@ -1,99 +1,87 @@
 package ru.stmlabs.ticketservice.service.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.stmlabs.ticketservice.dto.RegisterDto;
-import ru.stmlabs.ticketservice.dto.UserDto;
 import ru.stmlabs.ticketservice.entity.User;
 import ru.stmlabs.ticketservice.exception.LoginAlreadyExistsException;
-import ru.stmlabs.ticketservice.exception.UserNotFoundException;
 import ru.stmlabs.ticketservice.mapper.UserMapper;
+import ru.stmlabs.ticketservice.repository.UserRepository;
 import ru.stmlabs.ticketservice.security.JwtUtils;
 import ru.stmlabs.ticketservice.service.UserService;
 
+import static ru.stmlabs.ticketservice.repository.constants.SQLConstants.SQL_ADD_USER;
+
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private JwtUtils jwtUtils;
+    private final JwtUtils jwtUtils;
 
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-    @Autowired
-    private UserMapper userMapper;
+    private final BCryptPasswordEncoder passwordEncoder;
+
+    private final UserMapper userMapper;
+
+    private final UserRepository userRepository;
+
+    public UserServiceImpl(JdbcTemplate jdbcTemplate, JwtUtils jwtUtils, BCryptPasswordEncoder passwordEncoder, UserMapper userMapper, UserRepository userRepository) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.jwtUtils = jwtUtils;
+        this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public RegisterDto registerUser(RegisterDto body) throws LoginAlreadyExistsException {
-
+        log.info("Received params: " + body);
         User user = new User();
         user.setLogin(body.getUsername());
         user.setFullName(body.getFullName());
-        user.setRole(body.getRole());
         user.setPassword(passwordEncoder.encode(body.getPassword()));
+        user.setRole(body.getRole());
 
-        String sqlCheckUser = "SELECT login FROM app_user WHERE login = ?";
         try {
-            String existingLogin = jdbcTemplate.queryForObject(sqlCheckUser, new Object[]{body.getUsername()}, String.class);
-            if (existingLogin != null) {
+            String existingLogin = userRepository.findLoginUser(body.getUsername());
+            log.error("Existing login is " + existingLogin);
+            if (existingLogin != null && existingLogin.equals(body.getUsername())) {
                 throw new LoginAlreadyExistsException("User with login " + body.getUsername() + " already exists.");
             }
         } catch (EmptyResultDataAccessException e) {
         }
 
-        String sqlInsertUser = "INSERT INTO app_user (login, password, fullName) VALUES (?, ?, ?)";
         try {
-            jdbcTemplate.update(sqlInsertUser, user.getLogin(), user.getPassword(), user.getFullName());
+            jdbcTemplate.update(SQL_ADD_USER, user.getLogin(), user.getPassword(), user.getFullName());
         } catch (DataAccessException e) {
             throw new RuntimeException("Error inserting user into the database", e);
         }
+        log.info("User " + body + " saved in database");
         return body;
     }
 
-    private static final String SQL_FIND_USER_BY_USERNAME = "SELECT * FROM app_user WHERE login = ?";
-
     @Override
-    public UserDto getUserDto(String userName) {
-        try {
-            User user = getUser(userName);
-            return userMapper.userToUserDto(user);
-        } catch (UserNotFoundException e) {
+    public Long getUserId(HttpServletRequest request) {
+        String authorizationHeader = jwtUtils.getAuthorizationHeader(request);
+        if (authorizationHeader == null || authorizationHeader.isEmpty()) {
+            log.error("Authorization header is missing or empty");
             return null;
         }
-    }
-
-
-    @Override
-    public User getUser(String username) throws UserNotFoundException {
+        String userName = jwtUtils.getUserNameFromJwtToken(authorizationHeader);
         try {
-            return jdbcTemplate.queryForObject(SQL_FIND_USER_BY_USERNAME, new Object[]{username}, (rs, rowNum) -> {
-                User user = new User();
-                user.setId(rs.getLong("id"));
-                user.setLogin(rs.getString("login"));
-                user.setPassword(rs.getString("password"));
-                user.setFullName(rs.getString("fullName"));
-                return user;
-            });
+            return userRepository.findIDByLogin(userName);
         } catch (EmptyResultDataAccessException e) {
-            throw new UserNotFoundException("User not found with username: " + username);
-        }
-    }
-
-    @Override
-    public Long getUserId(String username) throws UserNotFoundException {
-        try {
-            String sqlCheckUser = "SELECT id FROM app_user WHERE login = ?";
-            Long userId = jdbcTemplate.queryForObject(sqlCheckUser, new Object[]{username}, Long.class);
-            return userId;
-        } catch (EmptyResultDataAccessException e) {
-            throw new UserNotFoundException("User not found with username: " + username);
+            log.error("User not found with username: " + userName);
+            return null;
+        } catch (Exception e) {
+            log.error("An error occurred while retrieving user ID for username: " + userName, e);
+            return null;
         }
     }
 }

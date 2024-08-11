@@ -1,8 +1,8 @@
 package ru.stmlabs.ticketservice.service;
 
-//import ru.stmlabs.ticketservice.dto.CreateOrUpdateTicketDto;
 import ru.stmlabs.ticketservice.entity.Ticket;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,9 +14,10 @@ public interface TicketService {
             String arrival,
             String carrier,
             int pageNumber,
-            int pageSize);
+            int pageSize)
+            throws SQLException;
 
-    Ticket buyTicket(int id, Long userId);
+    Ticket buyTicket(int ticketId, Long userId);
 
     List<Ticket> getTicketsMe(Long userId);
 

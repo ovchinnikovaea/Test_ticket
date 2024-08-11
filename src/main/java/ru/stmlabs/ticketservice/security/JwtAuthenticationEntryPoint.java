@@ -3,25 +3,23 @@ package ru.stmlabs.ticketservice.security;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+@Slf4j
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationEntryPoint.class);
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException, ServletException {
-        // Логирование подробностей ошибки
-        logger.error("Unauthorized error: {}", authException.getMessage());
-        logger.debug("Request URI: {}", request.getRequestURI());
-        logger.debug("Request method: {}", request.getMethod());
+        log.error("Unauthorized error: " + authException.getMessage());
+        log.debug("Request URI: " + request.getRequestURI());
+        log.debug("Request method: " + request.getMethod());
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: Unauthorized");
     }
 }

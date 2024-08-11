@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: Ticket Service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/Ticket-service
+    username: admin
+    password: Zxcdsaqwe
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    change-log: classpath:liquibase/changelog-master.yml
+
+server:
+  port: 8080
+
+jwt:
+  secret: jwt_secret_key
+  expiration:
+    access: 3600000
+    refresh: 86400000

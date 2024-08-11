@@ -2,7 +2,6 @@ package ru.stmlabs.ticketservice.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.stereotype.Component;
-//import ru.stmlabs.ticketservice.dto.CreateOrUpdateTicketDto;
 import ru.stmlabs.ticketservice.dto.TicketDto;
 import ru.stmlabs.ticketservice.dto.TicketsDto;
 import ru.stmlabs.ticketservice.entity.Ticket;
