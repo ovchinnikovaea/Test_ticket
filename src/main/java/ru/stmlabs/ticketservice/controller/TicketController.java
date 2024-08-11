@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.stmlabs.ticketservice.dto.TicketDto;
 import ru.stmlabs.ticketservice.entity.Ticket;
 import ru.stmlabs.ticketservice.service.TicketService;
 import ru.stmlabs.ticketservice.service.UserService;
@@ -32,14 +33,14 @@ public class TicketController {
             @ApiResponse(responseCode = "404", description = "Not found")
     })
     @GetMapping("/by-param")
-    public ResponseEntity<List<Ticket>> getAllTicketsByParam(
+    public ResponseEntity<List<TicketDto>> getAllTicketsByParam(
             @RequestParam(value = "dateTime", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTime,
             @RequestParam(value = "departure", required = false) String departure,
             @RequestParam(value = "arrival", required = false) String arrival,
             @RequestParam(value = "carrier", required = false) String carrier,
             @RequestParam(defaultValue = "0") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize) throws SQLException {
-        List<Ticket> tickets = ticketService.getAllTicketsByParam(dateTime, departure, arrival, carrier, pageNumber, pageSize);
+        List<TicketDto> tickets = ticketService.getAllTicketsByParam(dateTime, departure, arrival, carrier, pageNumber, pageSize);
         return ResponseEntity.ok(tickets);
     }
 
@@ -50,10 +51,10 @@ public class TicketController {
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
     })
     @PostMapping("/{id}/buy")
-    public ResponseEntity<Ticket> buyTicket(@PathVariable int id, HttpServletRequest request) {
+    public ResponseEntity<TicketDto> buyTicket(@PathVariable int id, HttpServletRequest request) {
         Long userId = userService.getUserId(request);
 
-        Ticket ticket = ticketService.buyTicket(id, userId);
+        TicketDto ticket = ticketService.buyTicket(id, userId);
         return ResponseEntity.ok(ticket);
     }
 
@@ -64,10 +65,10 @@ public class TicketController {
             @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @GetMapping(value = "/me")
-    public ResponseEntity<List<Ticket>> getTicketsMe(HttpServletRequest request) {
+    public ResponseEntity<List<TicketDto>> getTicketsMe(HttpServletRequest request) {
         Long userId = userService.getUserId(request);
 
-        List<Ticket> tickets = ticketService.getTicketsMe(userId);
+        List<TicketDto> tickets = ticketService.getTicketsMe(userId);
         return ResponseEntity.ok(tickets);
     }
 

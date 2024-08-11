@@ -32,4 +32,6 @@ public class SQLConstants {
 
     public static final String SQL_FIND_ID_BY_LOGIN = "SELECT id FROM app_user WHERE login = ?";
 
+    public static final String SQL_GET_ROUTE_BY_ID = "SELECT id, departure, arrival FROM route WHERE id = ?";
+
 }

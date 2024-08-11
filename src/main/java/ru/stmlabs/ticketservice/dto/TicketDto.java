@@ -1,8 +1,12 @@
 package ru.stmlabs.ticketservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.time.LocalDateTime;
+@Getter
+@Setter
 public class TicketDto {
 
     @JsonProperty("departure")
@@ -16,5 +20,9 @@ public class TicketDto {
     private Integer price;
 
     public TicketDto(String departure, String arrival, LocalDateTime dateTime, int price) {
+    }
+
+    public TicketDto() {
+
     }
 }
