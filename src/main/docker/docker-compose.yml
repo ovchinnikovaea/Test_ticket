@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  app:
+    image: ticket-service
+    build:
+      context: .
+    container_name: app
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/Ticket-service
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=Zxcdsaqwe
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=Ticket-service
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=Zxcdsaqwe

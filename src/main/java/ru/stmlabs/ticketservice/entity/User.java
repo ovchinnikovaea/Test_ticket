@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import ru.stmlabs.ticketservice.enums.ERole;
 
-import java.util.List;
-
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -15,7 +13,7 @@ public class User {
     private String login;
     private String password;
     private String fullName;
-    private Role role;
+    private ERole role;
 
     public User() {
     }

@@ -1,30 +1,29 @@
 package ru.stmlabs.ticketservice.mapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.springframework.stereotype.Component;
-//import ru.stmlabs.ticketservice.dto.CreateOrUpdateTicketDto;
 import ru.stmlabs.ticketservice.dto.TicketDto;
-import ru.stmlabs.ticketservice.dto.TicketsDto;
+import ru.stmlabs.ticketservice.entity.Route;
 import ru.stmlabs.ticketservice.entity.Ticket;
+import ru.stmlabs.ticketservice.repository.RouteRepository;
 
-import java.util.List;
 
 @Component
-@Mapper(componentModel = "spring")
-public abstract class TicketMapper {
+public class TicketMapper {
 
-    public abstract TicketDto ticketToTicketDto(Ticket ticket);
+    private final RouteRepository routeRepository;
 
-    public abstract Ticket ticketDtoToTicket(TicketDto ticketDto);
+    public TicketMapper(RouteRepository routeRepository) {
+        this.routeRepository = routeRepository;
+    }
 
-    public abstract List<TicketDto> ticketsToTicketDtos(List<Ticket> tickets);
-    public abstract List<Ticket> ticketDtosToTickets(List<TicketDto> ticketDtos);
-    @Mapping(target = "results", source = "tickets")
-    @Mapping(expression = "java(tickets.size())", target = "count")
-    public TicketsDto ticketsToTicketsDto(List<Ticket> tickets) {
-        TicketsDto ticketsDto = new TicketsDto();
-        ticketsDto.setResults(ticketsToTicketDtos(tickets));
-        ticketsDto.setCount(tickets.size());
-        return ticketsDto;
+    public TicketDto toDto(Ticket ticket) {
+        Route route = routeRepository.getRouteById(ticket.getRouteId());
+
+        TicketDto ticketDto = new TicketDto();
+        ticketDto.setDeparture(route.getDeparture());
+        ticketDto.setArrival(route.getArrival());
+        ticketDto.setDateTime(ticket.getDateTime());
+        ticketDto.setPrice(ticket.getPrice());
+
+        return ticketDto;
     }
 }
