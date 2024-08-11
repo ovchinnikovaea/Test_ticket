@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    image: 'ticket-service:latest'
+    image: ticket-service
     build:
       context: .
     container_name: app
@@ -10,12 +10,13 @@ services:
       - db
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/Ticket-service
-      - SPRING_DATASOURCE_USERNAME=compose-admin
-      - SPRING_DATASOURCE_PASSWORD=compose-Zxcdsaqwe
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=Zxcdsaqwe
 
   db:
-    image: 'postgres:13.1-alpine'
-    container_name: db
+    image: postgres
+    restart: always
     environment:
-      - POSTGRES_USER=compose-admin
-      - POSTGRES_PASSWORD=compose-Zxcdsaqwe
+      - POSTGRES_DB=Ticket-service
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=Zxcdsaqwe
